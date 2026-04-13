@@ -9,9 +9,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # --- SECURITY ---
-SECRET_KEY = os.environ.get('SECRET_KEY')
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+SECRET_KEY = os.environ.get("SECRET_KEY", "unsafe-dev-key")
+
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
+
+ALLOWED_HOSTS = os.environ.get(
+    "ALLOWED_HOSTS",
+    "animal-app-qmuy.onrender.com,127.0.0.1,localhost"
+).split(",")
 
 # --- APPS ---
 INSTALLED_APPS = [
@@ -79,3 +84,5 @@ REST_FRAMEWORK = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 WSGI_APPLICATION = 'animal_protection.wsgi.application'
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
