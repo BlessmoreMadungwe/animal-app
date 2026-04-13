@@ -1,21 +1,48 @@
-from rest_framework import generics
-from django.contrib.auth.models import User
-from .serializers import UserSerializer
+from rest_framework import generics, viewsets, status
+from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-from rest_framework import viewsets
-from .models import Animal
-from .serializers import AnimalSerializer
-# Register API
+from django.contrib.auth.models import User
+from django.views.decorators.csrf import csrf_exempt
+
+from .serializers import UserSerializer, AnimalSerializer, ContactMessageSerializer
+from .models import Animal, ContactMessage
+
+
+# -------------------------
+# User Registration
+# -------------------------
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
 
+# -------------------------
+# Animals API
+# -------------------------
 class AnimalViewSet(viewsets.ModelViewSet):
     queryset = Animal.objects.all()
     serializer_class = AnimalSerializer
+
+
+# -------------------------
+# Contact Form API
+# -------------------------
+@csrf_exempt
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def send_message(request):
+    serializer = ContactMessageSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(
+            {"success": "Message sent successfully!"},
+            status=status.HTTP_201_CREATED
+        )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

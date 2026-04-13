@@ -10,7 +10,15 @@ import Dashboard from "./components/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AddAnimal from "./components/AddAnimal";  // ✅ import new page
 import ManageAnimals from "./components/ManageAnimals";
-import Donate from "./components/Donate";
+import Donate from "./components/Donate"; // <-- add this
+
+
+import AdminDashboard from "./admin/AdminDashboard";
+import AnimalsAdmin from "./admin/pages/AnimalsAdmin";
+import AddAnimalAdmin from "./admin/pages/AddAnimalAdmin";
+import UsersAdmin from "./admin/pages/UsersAdmin";
+import DonationsAdmin from "./admin/pages/DonationsAdmin";
+import ReportsAdmin from "./admin/pages/ReportsAdmin";
 
 export default function App() {
   return (
@@ -24,9 +32,18 @@ export default function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/create-account" element={<CreateAccount />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute> }/>
-        <Route path="/add-animal"element={ <ProtectedRoute> <AddAnimal /></ProtectedRoute> }/>
-        <Route path="/manage-animals"element={ <ProtectedRoute> <ManageAnimals /></ProtectedRoute> }/>
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/add-animal" element={<ProtectedRoute> <AddAnimal /></ProtectedRoute>} />
+        <Route path="/manage-animals" element={<ProtectedRoute> <ManageAnimals /></ProtectedRoute>} />
+        <Route path="/donate" element={<Donate />} />
+
+
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/animals" element={<AnimalsAdmin />} />
+        <Route path="/admin/add-animal" element={<AddAnimalAdmin />} />
+        <Route path="/admin/users" element={<UsersAdmin />} />
+        <Route path="/admin/donations" element={<DonationsAdmin />} />
+        <Route path="/admin/reports" element={<ReportsAdmin />} />
         <Route path="/donate" element={<Donate />} />
 
       </Routes>
