@@ -10,6 +10,7 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-development-key")
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
+# ALLOWED_HOSTS needs to include your Render domain and local host
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 # --- 2. APPLICATION DEFINITION ---
@@ -46,27 +47,33 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'animal_protection.urls'
 WSGI_APPLICATION = 'animal_protection.wsgi.application'
 
-# --- 3. DATABASE ---
+# --- 3. DATABASE (Neon Postgres Configuration) ---
 DATABASES = {
     'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600
+        # Looks for DATABASE_URL in Render environment variables
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
     )
 }
 
-# --- 4. CORS & CSRF (FIXED) ---
-# We split the string from .env, but provide hardcoded defaults as a fallback
+# Neon requires SSL in production
+if not DEBUG:
+    DATABASES['default']['OPTIONS'] = {
+        'sslmode': 'require',
+    }
+
+# --- 4. CORS & CSRF ---
 CORS_RAW = os.environ.get('CORS_ALLOWED_ORIGINS', '')
 if CORS_RAW:
     CORS_ALLOWED_ORIGINS = [origin.strip() for origin in CORS_RAW.split(',') if origin.strip()]
 else:
-    # Manual fallback to ensure local development always works
+    # Default local origins
     CORS_ALLOWED_ORIGINS = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
     ]
 
-# Essential for JWT and Auth headers
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
     "accept",
@@ -77,7 +84,7 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 
-# Ensure CSRF matches CORS for Django 4.0+
+# CSRF must match CORS origins for Django 4.0+
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
 # --- 5. REST FRAMEWORK ---
