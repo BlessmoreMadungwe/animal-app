@@ -32,7 +32,7 @@ export default function AddAnimal() {
       data.append("name", formData.name);
       if (formData.image) data.append("image", formData.image);
 
-      const response = await fetch("http://localhost:8000/api/animals/", {
+      const response = await fetch("http://localhost:8000/api/animals", {
         method: "POST",
         body: data,
       });
