@@ -28,15 +28,16 @@ INSTALLED_APPS = [
     # Third-party
     'rest_framework',
     'corsheaders',
+    'rest_framework_simplejwt',
     
     # Local apps
     'api', 
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",  # MUST BE FIRST
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # Essential for Render
-    'corsheaders.middleware.CorsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -51,7 +52,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [], 
-        'APP_DIRS': True, # Required for Admin login.html
+        'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -65,7 +66,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'animal_protection.wsgi.application'
 
-# --- 5. DATABASE (Neon/Postgres) ---
+# --- 5. DATABASE ---
 DATABASES = {
     'default': dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
@@ -74,21 +75,25 @@ DATABASES = {
 }
 
 # --- 6. CORS & CSRF ---
-CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:5173').split(',')
+# This handles the string from your .env and turns it into a clean list
+CORS_RAW = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173')
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in CORS_RAW.split(',') if origin.strip()]
+
+# Critical for Django 4.0+: CSRF must match the CORS origins
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
 # --- 7. STATIC & MEDIA FILES ---
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Ensure the static folder exists for WhiteNoise
+# Ensure the static folder exists
 if not os.path.exists(STATIC_ROOT):
     os.makedirs(STATIC_ROOT)
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Modern Django 5.x Storage Configuration
+# WhiteNoise storage configuration
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
