@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from importlib.util import find_spec
+from urllib.parse import urlparse
 
 try:
     import dj_database_url
@@ -26,11 +27,68 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-development-key")
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
-    if host.strip()
+
+def _split_csv_env(name, default=""):
+    return [
+        value.strip()
+        for value in os.environ.get(name, default).split(",")
+        if value.strip()
+    ]
+
+
+def _normalize_origin(value):
+    candidate = value.strip().rstrip("/")
+    if not candidate:
+        return None
+
+    if "://" not in candidate:
+        return None
+
+    parsed = urlparse(candidate)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        return None
+
+    return f"{parsed.scheme}://{parsed.netloc}"
+
+
+def _host_from_origin(value):
+    parsed = urlparse(value)
+    return parsed.netloc if parsed.netloc else None
+
+
+frontend_origin_candidates = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://animal-app-alpha.vercel.app",
+    "https://animal-app-six.vercel.app",
 ]
+
+for env_name in ("FRONTEND_URL", "APP_URL", "CORS_ALLOWED_ORIGINS"):
+    frontend_origin_candidates.extend(_split_csv_env(env_name))
+
+for env_name in ("VERCEL_URL", "VERCEL_BRANCH_URL", "VERCEL_PROJECT_PRODUCTION_URL"):
+    env_value = os.environ.get(env_name, "").strip()
+    if env_value:
+        frontend_origin_candidates.append(f"https://{env_value.lstrip('https://')}")
+
+normalized_frontend_origins = []
+for candidate in frontend_origin_candidates:
+    normalized = _normalize_origin(candidate)
+    if normalized and normalized not in normalized_frontend_origins:
+        normalized_frontend_origins.append(normalized)
+
+allowed_hosts = set(_split_csv_env("ALLOWED_HOSTS", "localhost,127.0.0.1"))
+for origin in normalized_frontend_origins:
+    host = _host_from_origin(origin)
+    if host:
+        allowed_hosts.add(host)
+
+for env_name in ("RAILWAY_PUBLIC_DOMAIN", "RAILWAY_STATIC_URL"):
+    env_value = os.environ.get(env_name, "").strip()
+    if env_value:
+        allowed_hosts.add(env_value.replace("https://", "").replace("http://", "").rstrip("/"))
+
+ALLOWED_HOSTS = sorted(host for host in allowed_hosts if host)
 
 # --- 2. APPLICATION DEFINITION ---
 INSTALLED_APPS = [
@@ -110,23 +168,13 @@ if not DEBUG and DATABASES['default']['ENGINE'] != 'django.db.backends.sqlite3':
     }
 
 # --- 4. CORS & CSRF ---
-_cors_raw = os.environ.get('CORS_ALLOWED_ORIGINS', '')
-
-if _cors_raw:
-    CORS_ALLOWED_ORIGINS = [
-        origin.strip().rstrip('/')
-        for origin in _cors_raw.split(',')
-        if origin.strip()
-    ]
-else:
-    CORS_ALLOWED_ORIGINS = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "https://animal-app-alpha.vercel.app",
-        "https://animal-app-qmuy.onrender.com",
-    ]
+CORS_ALLOWED_ORIGINS = normalized_frontend_origins
 
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
+]
 
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
