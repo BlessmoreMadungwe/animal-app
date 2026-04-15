@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { buildApiUrl } from "../lib/api";
 
 export default function ManageAnimals() {
   const [animals, setAnimals] = useState([]);
@@ -17,7 +18,7 @@ export default function ManageAnimals() {
 
   const fetchAnimals = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/api/animals/");
+      const res = await axios.get(buildApiUrl("/api/animals/"));
       setAnimals(res.data);
     } catch (err) {
       console.error(err);
@@ -54,7 +55,7 @@ export default function ManageAnimals() {
       if (formData.image) data.append("image", formData.image);
 
       await axios.put(
-        `http://127.0.0.1:8000/api/animals/${editingAnimal}/`,
+        buildApiUrl(`/api/animals/${editingAnimal}/`),
         data
       );
 
@@ -71,7 +72,7 @@ export default function ManageAnimals() {
     if (!window.confirm("Are you sure you want to delete this animal?")) return;
 
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/animals/${id}/`);
+      await axios.delete(buildApiUrl(`/api/animals/${id}/`));
       fetchAnimals(); // refresh list
     } catch (err) {
       console.error("Failed to delete animal:", err);

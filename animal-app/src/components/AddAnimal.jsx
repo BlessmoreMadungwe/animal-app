@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { buildApiUrl } from "../lib/api";
 
 export default function AddAnimal() {
   const [formData, setFormData] = useState({
@@ -32,7 +33,7 @@ export default function AddAnimal() {
       data.append("name", formData.name);
       if (formData.image) data.append("image", formData.image);
 
-      const response = await fetch("http://localhost:8000/api/animals", {
+      const response = await fetch(buildApiUrl("/api/animals/"), {
         method: "POST",
         body: data,
       });

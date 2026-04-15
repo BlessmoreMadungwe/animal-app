@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { buildApiUrl } from "../lib/api";
 
 // ✅ CRUCIAL: 'export default' must be here to fix the Vercel build error
 export default function Login() {
@@ -20,17 +21,13 @@ export default function Login() {
     setError("");
     setLoading(true);
 
-    // Use your Render URL from environment variables
-    const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
-
     try {
-      const response = await fetch(`${API_BASE_URL}/api/login/`, {
+      const response = await fetch(buildApiUrl("/api/login/"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
-      // Try to parse response (in case server returns non-JSON)
       const data = await response.json().catch(() => ({}));
 
       if (response.ok && data.access && data.refresh) {

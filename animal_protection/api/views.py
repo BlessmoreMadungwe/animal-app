@@ -1,7 +1,7 @@
 from rest_framework import generics, viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 
@@ -29,6 +29,19 @@ class UserViewSet(viewsets.ModelViewSet):
 class AnimalViewSet(viewsets.ModelViewSet):
     queryset = Animal.objects.all()
     serializer_class = AnimalSerializer
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def dashboard_stats(request):
+    return Response(
+        {
+            "username": request.user.username,
+            "tasks": Animal.objects.count(),
+            "messages": ContactMessage.objects.count(),
+            "notifications": 0,
+        }
+    )
 
 
 # -------------------------

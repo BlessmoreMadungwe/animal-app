@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { buildApiUrl } from "../lib/api";
 
 export default function CreateAccount() {
   const [formData, setFormData] = useState({
@@ -30,12 +31,8 @@ export default function CreateAccount() {
       return;
     }
 
-    // Dynamic URL: Uses Vercel Env Var in production, localhost in development
-    const API_BASE_URL = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
-
     try {
-      // 1. Registration Request
-      const response = await fetch(`${API_BASE_URL}/api/register/`, {
+      const response = await fetch(buildApiUrl("/api/register/"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -60,8 +57,7 @@ export default function CreateAccount() {
 
       setSuccessMsg(`Registration successful! Welcome, ${formData.username}.`);
 
-      // 2. Auto login Request
-      const loginResponse = await fetch(`${API_BASE_URL}/api/login/`, {
+      const loginResponse = await fetch(buildApiUrl("/api/login/"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -78,13 +74,11 @@ export default function CreateAccount() {
         return;
       }
 
-      // Save JWT Tokens
       localStorage.setItem("access_token", loginData.access);
       localStorage.setItem("refresh_token", loginData.refresh);
 
-      // Redirect to Dashboard after 1.5 seconds
       setTimeout(() => navigate("/dashboard"), 1500);
-    } catch (err) {
+    } catch {
       setError("Network error. Please check if the server is awake.");
     } finally {
       setLoading(false);

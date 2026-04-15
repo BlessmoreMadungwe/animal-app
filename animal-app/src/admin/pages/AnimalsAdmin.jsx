@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+import { buildApiUrl } from "../../lib/api";
 // Manage Animals Page
 export default function AnimalsAdmin() {
   const [animals, setAnimals] = useState([]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/animals/")
+    fetch(buildApiUrl("/api/animals/"))
       .then(res => res.json())
       .then(data => setAnimals(data));
   }, []);

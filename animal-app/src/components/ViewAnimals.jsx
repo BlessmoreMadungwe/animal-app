@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { buildApiUrl } from "../lib/api";
 
 export default function ViewAnimals() {
   const [animals, setAnimals] = useState([]);
@@ -9,7 +10,7 @@ export default function ViewAnimals() {
   useEffect(() => {
     const fetchAnimals = async () => {
       try {
-        const res = await axios.get("http://127.0.0.1:8000/api/animals/");
+        const res = await axios.get(buildApiUrl("/api/animals/"));
         setAnimals(res.data);
       } catch (err) {
         console.error("Error fetching animals:", err);

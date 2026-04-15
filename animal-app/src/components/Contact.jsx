@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { buildApiUrl } from "../lib/api";
 
 export default function Contact() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
@@ -17,24 +18,22 @@ export default function Contact() {
 
     try {
       // 👉 Optional: send to backend
-      const response = await fetch("http://127.0.0.1:8000/api/contact/", {
+      const response = await fetch(buildApiUrl("/api/contact/"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         setError(data.error || "Failed to send message.");
         setLoading(false);
         return;
       }
 
-      console.log("Form Submitted:", form);
-
       setSuccess("Your message has been sent successfully!");
       setForm({ name: "", email: "", message: "" });
-    } catch (err) {
+    } catch {
       setError("Network error. Try again.");
     }
 

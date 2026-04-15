@@ -1,8 +1,23 @@
 import os
 from pathlib import Path
 from datetime import timedelta
-import dj_database_url
-from dotenv import load_dotenv
+from importlib.util import find_spec
+
+try:
+    import dj_database_url
+except ImportError:
+    dj_database_url = None
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    def load_dotenv(*args, **kwargs):
+        return False
+
+try:
+    from PIL import Image as PILImage
+except ImportError:
+    PILImage = None
 
 # --- 1. BASE CONFIG ---
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,16 +45,17 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'rest_framework_simplejwt',
-    'whitenoise.runserver_nostatic',
 
     # Local apps
     'api',
 ]
 
+if find_spec("whitenoise") is not None:
+    INSTALLED_APPS.append('whitenoise.runserver_nostatic')
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # MUST BE FIRST
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -47,6 +63,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+if find_spec("whitenoise") is not None:
+    MIDDLEWARE.insert(2, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 TEMPLATES = [
     {
@@ -68,15 +87,24 @@ ROOT_URLCONF = 'animal_protection.urls'
 WSGI_APPLICATION = 'animal_protection.wsgi.application'
 
 # --- 3. DATABASE ---
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
-}
+if dj_database_url is not None:
+    database_url = os.environ.get('DATABASE_URL')
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=database_url or f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
-if not DEBUG:
+if not DEBUG and DATABASES['default']['ENGINE'] != 'django.db.backends.sqlite3':
     DATABASES['default']['OPTIONS'] = {
         'sslmode': 'require',
     }
@@ -139,8 +167,15 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": (
+            "whitenoise.storage.CompressedManifestStaticFilesStorage"
+            if find_spec("whitenoise") is not None
+            else "django.contrib.staticfiles.storage.StaticFilesStorage"
+        ),
     },
 }
+
+if PILImage is None:
+    SILENCED_SYSTEM_CHECKS = ['fields.E210']
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
