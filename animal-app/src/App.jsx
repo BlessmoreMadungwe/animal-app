@@ -8,6 +8,11 @@ import CreateAccount from "./components/CreateAccount";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Footer from "./components/Footer";
+import Gallery from "./components/Gallery";
+import Impact from "./components/Impact";
+import Volunteer from "./components/Volunteer";
+import NotFound from "./components/NotFound";
 import AddAnimal from "./components/AddAnimal";  // ✅ import new page
 import ManageAnimals from "./components/ManageAnimals";
 import Donate from "./components/Donate"; // <-- add this
@@ -32,10 +37,22 @@ export default function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/create-account" element={<CreateAccount />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/add-animal" element={<ProtectedRoute> <AddAnimal /></ProtectedRoute>} />
-        <Route path="/manage-animals" element={<ProtectedRoute> <ManageAnimals /></ProtectedRoute>} />
+        <Route
+          path="/dashboard"
+          element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
+        />
+        <Route
+          path="/add-animal"
+          element={<ProtectedRoute><AddAnimal /></ProtectedRoute>}
+        />
+        <Route
+          path="/manage-animals"
+          element={<ProtectedRoute><ManageAnimals /></ProtectedRoute>}
+        />
         <Route path="/donate" element={<Donate />} />
+        <Route path="/gallery" element={<Gallery />} />
+        <Route path="/impact" element={<Impact />} />
+        <Route path="/volunteer" element={<Volunteer />} />
 
 
         <Route path="/admin" element={<AdminDashboard />} />
@@ -44,9 +61,9 @@ export default function App() {
         <Route path="/admin/users" element={<UsersAdmin />} />
         <Route path="/admin/donations" element={<DonationsAdmin />} />
         <Route path="/admin/reports" element={<ReportsAdmin />} />
-        <Route path="/donate" element={<Donate />} />
-
+        <Route path="*" element={<NotFound />} />
       </Routes>
+      <Footer />
     </>
   );
 }

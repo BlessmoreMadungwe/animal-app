@@ -1,10 +1,10 @@
 import { Navigate } from "react-router-dom";
+import { getValidAccessToken } from "../lib/auth";
 
 export default function ProtectedRoute({ children }) {
-  const accessToken = localStorage.getItem("access_token");
+  const accessToken = getValidAccessToken();
 
   if (!accessToken) {
-    // Redirect to login if not authenticated
     return <Navigate to="/login" replace />;
   }
 

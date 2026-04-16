@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { buildApiUrl } from "../lib/api";
+import { clearAuthTokens, getValidAccessToken } from "../lib/auth";
 
 // ✅ Added 'default' to fix the App.jsx:9 Uncaught SyntaxError
 export default function Dashboard() {
@@ -13,13 +14,12 @@ export default function Dashboard() {
   });
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
+    clearAuthTokens();
     navigate("/login", { replace: true });
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = getValidAccessToken();
     if (!token) {
       navigate("/login", { replace: true });
       return;
@@ -33,8 +33,7 @@ export default function Dashboard() {
     })
       .then((res) => {
         if (res.status === 401) {
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("refresh_token");
+          clearAuthTokens();
           navigate("/login", { replace: true });
           throw new Error("Unauthorized");
         }
